@@ -1,0 +1,64 @@
+############################################################
+QIIME2
+############################################################
+
+
+############################################################
+#IMPORT DADA2 FILES
+
+qiime tools import \
+--input-path rep-seqs.fna \
+--type 'FeatureData[Sequence]' \
+--output-path rep-seqs.qza
+
+echo -n "#OTU Table" | cat - seqtab-nochim.txt > biom-table.txt
+
+biom convert -i biom-table.txt -o table.biom --table-type="OTU table" --to-hdf5
+
+qiime tools import \
+--input-path table.biom \
+--type 'FeatureTable[Frequency]' \
+--input-format BIOMV210Format \
+--output-path table.qza
+
+
+#Install readytowear first 
+git clone https://github.com/BenKaehler/readytowear.git
+
+############################################################
+#Train taxonomic classifier with GTDB using ClawBack and ReadytoWear datasets
+
+qiime feature-classifier fit-classifier-naive-bayes \
+  --i-reference-reads readytowear/data/gtdb_r89/515f-806r/ref-seqs.qza \
+  --i-reference-taxonomy readytowear/data/gtdb_r89/515f-806r/ref-tax.qza \
+  --i-class-weight readytowear/data/gtdb_r89/515f-806r/human-stool.qza \
+  --o-classifier gtdb_r89_v4_human-stool_classifier.qza
+
+
+qiime feature-classifier classify-sklearn \
+  --i-reads rep-seqs.qza \
+  --i-classifier gtdb_r89_v4_human-stool_classifier.qza \
+  --o-classification taxonomy.qza
+
+qiime metadata tabulate \
+  --m-input-file taxonomy.qza \
+  --m-input-file rep-seqs.qza \
+  --o-visualization Qiime2-Results/bespoke-classifier-results.qzv
+
+qiime feature-table summarize \
+  --i-table table.qza \
+  --o-visualization Qiime2-Results/table.qzv \
+  --m-sample-metadata-file MICROICU_fecal_info.txt
+
+qiime feature-table tabulate-seqs \
+  --i-data rep-seqs.qza \
+  --o-visualization Qiime2-Results/rep-seqs.qzv
+
+############################################################
+#Plot barplot of taxonomic assignments
+
+qiime taxa barplot \
+  --i-table table.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-fileMICROICU_fecal_info.txt \
+  --o-visualization Qiime2-Results/taxa-bar-plots.qzv
