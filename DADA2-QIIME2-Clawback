@@ -1,5 +1,17 @@
 ############################################################
-QIIME2
+#DADA2 in R
+# taken from https://forum.qiime2.org/t/exporting-dada2-r-package-results-to-work-with-qiime2/2573/3
+############################################################
+
+
+write.table(t(seqtab.nochim), "dada2-analysis/seqtab-nochim.txt", sep="\t", row.names=TRUE, col.names=NA, quote=FALSE)
+
+uniquesToFasta(seqtab.nochim, fout='dada2-analysis/rep-seqs.fna', ids=colnames(seqtab.nochim))
+
+
+
+############################################################
+#QIIME2
 ############################################################
 
 
