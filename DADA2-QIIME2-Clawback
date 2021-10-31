@@ -34,8 +34,9 @@ qiime tools import \
 --output-path table.qza
 
 
-#Install readytowear first 
+#Install readytowear and Clawback first 
 git clone https://github.com/BenKaehler/readytowear.git
+conda install -c kaehler -c conda-forge q2-clawback
 
 ############################################################
 #Train taxonomic classifier with GTDB using ClawBack and ReadytoWear datasets
